@@ -52,7 +52,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   ParkingDataState _state = ParkingDataState.loading();
-  final String _apiUrl = 'http://10.0.2.2:3000/my-api';
+  final String _apiUrl = 'http://10.0.2.2:3000/my-1api';
 
   Future<void> _loadData() async {
     setState(() {
@@ -131,9 +131,11 @@ class _MyHomePageState extends State<MyHomePage> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(
-                              '車位 #${index + 1}',
-                              style: TextStyle(fontSize: 11),
+                            Expanded(
+                              child: Text(
+                                '車位 #${index + 1}',
+                                style: TextStyle(fontSize: 11),
+                              ),
                             ),
                             SizedBox(height: 2),
                             Icon(
@@ -144,9 +146,11 @@ class _MyHomePageState extends State<MyHomePage> {
                               size: 18,
                             ),
                             SizedBox(height: 2),
-                            Text(
-                              occupied ? '有車' : '空位',
-                              style: TextStyle(fontSize: 11),
+                            Expanded(
+                              child: Text(
+                                occupied ? '有車' : '空位',
+                                style: TextStyle(fontSize: 11),
+                              ),
                             ),
                           ],
                         ),
