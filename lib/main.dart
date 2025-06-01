@@ -5,6 +5,8 @@ import 'package:parking/Widgets/slotprogress.dart';
 import 'package:parking/Types/slotdata.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:async';
+import 'dart:io';
 
 void main() {
   runApp(const MyApp());
@@ -52,7 +54,10 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   ParkingDataState _state = ParkingDataState.loading();
-  final String _apiUrl = 'http://10.0.2.2:3000/my-1api';
+  final String _apiUrl = 'http://10.0.2.2:3000/my-api';
+  final String _wsUrl = 'ws://10.0.2.2:8080';
+  WebSocket? _webSocket;
+  StreamSubscription? _webSocketSubscription;
 
   Future<void> _loadData() async {
     setState(() {
@@ -60,10 +65,15 @@ class _MyHomePageState extends State<MyHomePage> {
     });
 
     try {
-      // Add artificial delay to show loading state longer
-      await Future.delayed(Duration(seconds: 1));
-
-      final response = await http.get(Uri.parse(_apiUrl));
+      // Add timeout to the request
+      final response = await http
+          .get(Uri.parse(_apiUrl))
+          .timeout(
+            Duration(seconds: 5),
+            onTimeout: () {
+              throw TimeoutException('請求超時，請檢查網絡連接');
+            },
+          );
 
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
@@ -73,27 +83,39 @@ class _MyHomePageState extends State<MyHomePage> {
           _state = ParkingDataState.success(data);
         });
       } else {
-        throw Exception('Failed to load data: ${response.statusCode}');
+        throw Exception('服務器返回錯誤: ${response.statusCode}');
       }
+    } on SocketException catch (e) {
+      setState(() {
+        _state = ParkingDataState.error('無法連接到服務器，請檢查網絡連接');
+      });
+    } on TimeoutException catch (e) {
+      setState(() {
+        _state = ParkingDataState.error(e.message ?? '請求超時');
+      });
+    } on FormatException catch (e) {
+      setState(() {
+        _state = ParkingDataState.error('數據格式錯誤');
+      });
     } catch (e) {
       setState(() {
-        _state = ParkingDataState.error('Failed to load data: ${e.toString()}');
+        _state = ParkingDataState.error('發生錯誤: ${e.toString()}');
       });
+    }
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('連線失敗：${e.toString()}'),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 3),
-            action: SnackBarAction(
-              label: '重試',
-              textColor: Colors.white,
-              onPressed: _loadData,
-            ),
+    if (mounted && _state.error != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_state.error!),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+          action: SnackBarAction(
+            label: '重試',
+            textColor: Colors.white,
+            onPressed: _loadData,
           ),
-        );
-      }
+        ),
+      );
     }
   }
 
@@ -101,77 +123,73 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     _loadData();
+    _connectWebSocket();
   }
 
-  void _showSlotsDialog() {
-    final slotData = _state.data;
-    if (slotData == null) return;
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Text('車位狀態'),
-            content: SizedBox(
-              width: double.maxFinite,
-              height: 300,
-              child: GridView.builder(
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  childAspectRatio: 1.5,
-                ),
-                itemCount: slotData.slots.length,
-                itemBuilder: (context, index) {
-                  final occupied = slotData.slots[index];
-                  return Card(
-                    color: occupied ? Colors.red[100] : Colors.green[100],
-                    child: Padding(
-                      padding: EdgeInsets.all(4.0),
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                '車位 #${index + 1}',
-                                style: TextStyle(fontSize: 11),
-                              ),
-                            ),
-                            SizedBox(height: 2),
-                            Icon(
-                              occupied
-                                  ? Icons.directions_car
-                                  : Icons.check_box_outline_blank,
-                              color: occupied ? Colors.red : Colors.green,
-                              size: 18,
-                            ),
-                            SizedBox(height: 2),
-                            Expanded(
-                              child: Text(
-                                occupied ? '有車' : '空位',
-                                style: TextStyle(fontSize: 11),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-    );
+  @override
+  void dispose() {
+    _webSocketSubscription?.cancel();
+    _webSocket?.close();
+    super.dispose();
+  }
+
+  void _connectWebSocket() async {
+    try {
+      print('Attempting to connect to WebSocket at $_wsUrl');
+      final socket = await WebSocket.connect(_wsUrl);
+      print('WebSocket connected successfully');
+      _webSocket = socket;
+      _webSocketSubscription = _webSocket?.listen(
+        (data) {
+          try {
+            print('Received WebSocket data: $data');
+            final jsonData = json.decode(data);
+            final updatedData = SlotData.fromJson(jsonData);
+            setState(() {
+              _state = ParkingDataState.success(updatedData);
+            });
+          } catch (e) {
+            print('Error parsing WebSocket data: $e');
+            setState(() {
+              _state = ParkingDataState.error('WebSocket數據格式錯誤');
+            });
+          }
+        },
+        onError: (error) {
+          print('WebSocket error: $error');
+          setState(() {
+            _state = ParkingDataState.error('WebSocket連接錯誤');
+          });
+          _reconnectWebSocket();
+        },
+        onDone: () {
+          print('WebSocket connection closed');
+          setState(() {
+            _state = ParkingDataState.error('WebSocket連接已關閉');
+          });
+          _reconnectWebSocket();
+        },
+      );
+    } catch (e) {
+      print('Error connecting to WebSocket: $e');
+      setState(() {
+        _state = ParkingDataState.error('無法連接到WebSocket服務器');
+      });
+      _reconnectWebSocket();
+    }
+  }
+
+  void _reconnectWebSocket() {
+    print('Attempting to reconnect WebSocket in 3 seconds...');
+    Future.delayed(Duration(seconds: 3), () {
+      if (mounted) {
+        _connectWebSocket();
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       body: SafeArea(
         child: RefreshIndicator(
@@ -185,11 +203,63 @@ class _MyHomePageState extends State<MyHomePage> {
               padding: EdgeInsets.only(left: 16.0, right: 16.0),
               child: Column(
                 children: [
-                  TopBar(onTap: _showSlotsDialog),
+                  TopBar(),
                   SizedBox(height: 8),
                   SlotDataWidget(state: _state),
                   SizedBox(height: 8),
                   SlotProgress(state: _state),
+                  SizedBox(height: 8),
+                  if (_state.data != null)
+                    Container(
+                      height: 300,
+                      child: GridView.builder(
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          childAspectRatio: 1.5,
+                        ),
+                        itemCount: _state.data!.slots.length,
+                        itemBuilder: (context, index) {
+                          final occupied = _state.data!.slots[index];
+                          return Card(
+                            color:
+                                occupied ? Colors.red[100] : Colors.green[100],
+                            child: Padding(
+                              padding: EdgeInsets.all(4.0),
+                              child: Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        '車位 #${index + 1}',
+                                        style: TextStyle(fontSize: 11),
+                                      ),
+                                    ),
+                                    SizedBox(height: 2),
+                                    Icon(
+                                      occupied
+                                          ? Icons.directions_car
+                                          : Icons.check_box_outline_blank,
+                                      color:
+                                          occupied ? Colors.red : Colors.green,
+                                      size: 18,
+                                    ),
+                                    SizedBox(height: 2),
+                                    Expanded(
+                                      child: Text(
+                                        occupied ? '有車' : '空位',
+                                        style: TextStyle(fontSize: 11),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -200,7 +270,7 @@ class _MyHomePageState extends State<MyHomePage> {
         onPressed: _loadData,
         tooltip: 'Reload',
         child: const Icon(Icons.refresh),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      ),
     );
   }
 }
