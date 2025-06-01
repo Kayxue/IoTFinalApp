@@ -4,12 +4,62 @@ import 'package:flutter/material.dart';
 import '../Types/slotdata.dart';
 
 class SlotDataWidget extends StatelessWidget {
-  final SlotData? slotData;
+  final ParkingDataState state;
 
-  const SlotDataWidget({super.key, this.slotData});
+  const SlotDataWidget({super.key, required this.state});
 
   @override
   Widget build(BuildContext context) {
+    if (state.isLoading) {
+      return SizedBox(
+        height: 200,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(
+                strokeWidth: 3,
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                backgroundColor: Colors.grey[200],
+              ),
+              SizedBox(height: 16),
+              Text("資料載入中...", style: TextStyle(fontSize: 16)),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (state.error != null) {
+      return SizedBox(
+        height: 200,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, color: Colors.red, size: 48),
+              SizedBox(height: 16),
+              Text(
+                state.error!,
+                style: TextStyle(color: Colors.red, fontSize: 16),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final slotData = state.data;
+    if (slotData == null) {
+      return SizedBox(
+        height: 200,
+        child: Center(
+          child: Text("No data available", style: TextStyle(fontSize: 16)),
+        ),
+      );
+    }
+
     return SizedBox(
       height: 200,
       child: GridView(
@@ -35,21 +85,13 @@ class SlotDataWidget extends StatelessWidget {
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     SizedBox(height: 4.0),
-                    (slotData != null
-                        ? AnimatedFlipCounter(
-                          value: slotData!.totalSlots,
-                          textStyle: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 50,
-                          ),
-                        )
-                        : Text(
-                          "Loading",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 30,
-                          ),
-                        )),
+                    AnimatedFlipCounter(
+                      value: slotData.totalSlots,
+                      textStyle: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 50,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -71,27 +113,17 @@ class SlotDataWidget extends StatelessWidget {
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     SizedBox(height: 4.0),
-                    (slotData != null
-                        ? AnimatedFlipCounter(
-                          value: slotData!.avaliableSlots,
-                          textStyle: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 50,
-                          ),
-                        )
-                        : Text(
-                          "Loading",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 30,
-                            color:
-                                ((slotData != null
-                                    ? (slotData!.avaliableSlots > 0
-                                        ? Colors.black
-                                        : Colors.red)
-                                    : Colors.black)),
-                          ),
-                        )),
+                    AnimatedFlipCounter(
+                      value: slotData.avaliableSlots,
+                      textStyle: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 50,
+                        color:
+                            slotData.avaliableSlots > 0
+                                ? Colors.black
+                                : Colors.red,
+                      ),
+                    ),
                   ],
                 ),
               ),
