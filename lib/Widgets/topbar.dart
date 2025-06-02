@@ -13,7 +13,7 @@ class TopBar extends StatelessWidget {
         clipBehavior: Clip.hardEdge,
         child: InkWell(
           splashColor: Colors.grey.withAlpha(40),
-          onTap: (){
+          onTap: () {
             MapsLauncher.launchQuery("台北市萬華區環河南路一段1號");
           },
           child: Container(
@@ -25,13 +25,28 @@ class TopBar extends StatelessWidget {
               children: [
                 Padding(
                   padding: EdgeInsets.only(left: 16.0),
-                  child: Text(
-                    "洛陽停車場",
-                    style: TextStyle(
-                      fontSize: 24,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "洛陽停車場",
+                        style: TextStyle(
+                          fontSize: 24,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        "台北市萬華區環河南路一段1號",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 Padding(
