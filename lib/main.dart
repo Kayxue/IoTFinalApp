@@ -69,7 +69,7 @@ class _MyHomePageState extends State<MyHomePage> {
       final response = await http
           .get(Uri.parse(_apiUrl))
           .timeout(
-            Duration(seconds: 5),
+            const Duration(seconds: 5),
             onTimeout: () {
               throw TimeoutException('請求超時，請檢查網絡連接');
             },
@@ -85,7 +85,7 @@ class _MyHomePageState extends State<MyHomePage> {
       } else {
         throw Exception('服務器返回錯誤: ${response.statusCode}');
       }
-    } on SocketException catch (e) {
+    } on SocketException {
       setState(() {
         _state = ParkingDataState.error('無法連接到服務器，請檢查網絡連接');
       });
@@ -93,7 +93,7 @@ class _MyHomePageState extends State<MyHomePage> {
       setState(() {
         _state = ParkingDataState.error(e.message ?? '請求超時');
       });
-    } on FormatException catch (e) {
+    } on FormatException {
       setState(() {
         _state = ParkingDataState.error('數據格式錯誤');
       });
@@ -108,7 +108,7 @@ class _MyHomePageState extends State<MyHomePage> {
         SnackBar(
           content: Text(_state.error!),
           backgroundColor: Colors.red,
-          duration: Duration(seconds: 3),
+          duration: const Duration(seconds: 3),
           action: SnackBarAction(
             label: '重試',
             textColor: Colors.white,
@@ -143,8 +143,12 @@ class _MyHomePageState extends State<MyHomePage> {
         (data) {
           try {
             print('Received WebSocket data: $data');
-            final jsonData = json.decode(data);
-            final updatedData = SlotData.fromJson(jsonData);
+            final Map<String, dynamic> jsonData = jsonDecode(data);
+            if(jsonData['type'] != "parkingUpdate"){
+              print('Received unexpected WebSocket data type: ${jsonData['type']}, ignoring');
+              return;
+            }
+            final updatedData = SlotData.fromJson(jsonData['data']);
             setState(() {
               _state = ParkingDataState.success(updatedData);
             });
@@ -181,7 +185,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _reconnectWebSocket() {
     print('Attempting to reconnect WebSocket in 3 seconds...');
-    Future.delayed(Duration(seconds: 3), () {
+    Future.delayed(const Duration(seconds: 3), () {
       if (mounted) {
         _connectWebSocket();
       }
@@ -195,25 +199,25 @@ class _MyHomePageState extends State<MyHomePage> {
         child: RefreshIndicator(
           onRefresh: _loadData,
           child: SingleChildScrollView(
-            physics: AlwaysScrollableScrollPhysics(),
+            physics: const AlwaysScrollableScrollPhysics(),
             child: Container(
               height:
                   MediaQuery.of(context).size.height -
                   MediaQuery.of(context).padding.top,
-              padding: EdgeInsets.only(left: 16.0, right: 16.0),
+              padding: const EdgeInsets.only(left: 16.0, right: 16.0),
               child: Column(
                 children: [
-                  TopBar(),
-                  SizedBox(height: 8),
+                  const TopBar(),
+                  const SizedBox(height: 8),
                   SlotDataWidget(state: _state),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   SlotProgress(state: _state),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   if (_state.data != null)
-                    Container(
+                    SizedBox(
                       height: 300,
                       child: GridView.builder(
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 3,
                           childAspectRatio: 1.5,
                         ),
@@ -224,7 +228,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             color:
                                 occupied ? Colors.red[100] : Colors.green[100],
                             child: Padding(
-                              padding: EdgeInsets.all(4.0),
+                              padding: const EdgeInsets.all(4.0),
                               child: Center(
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
@@ -233,10 +237,10 @@ class _MyHomePageState extends State<MyHomePage> {
                                     Expanded(
                                       child: Text(
                                         '車位 #${index + 1}',
-                                        style: TextStyle(fontSize: 11),
+                                        style: const TextStyle(fontSize: 11),
                                       ),
                                     ),
-                                    SizedBox(height: 2),
+                                    const SizedBox(height: 2),
                                     Icon(
                                       occupied
                                           ? Icons.directions_car
@@ -245,11 +249,11 @@ class _MyHomePageState extends State<MyHomePage> {
                                           occupied ? Colors.red : Colors.green,
                                       size: 18,
                                     ),
-                                    SizedBox(height: 2),
+                                    const SizedBox(height: 2),
                                     Expanded(
                                       child: Text(
                                         occupied ? '有車' : '空位',
-                                        style: TextStyle(fontSize: 11),
+                                        style: const TextStyle(fontSize: 11),
                                       ),
                                     ),
                                   ],

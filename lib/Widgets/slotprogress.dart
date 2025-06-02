@@ -10,7 +10,7 @@ class SlotProgress extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (state.isLoading) {
-      return Padding(
+      return const Padding(
         padding: EdgeInsets.all(8.0),
         child: Column(
           children: [
@@ -33,10 +33,10 @@ class SlotProgress extends StatelessWidget {
 
     if (state.error != null) {
       return Padding(
-        padding: EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(8.0),
         child: Column(
           children: [
-            Row(
+            const Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
@@ -49,10 +49,10 @@ class SlotProgress extends StatelessWidget {
                 ),
               ],
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text(
               state.error!,
-              style: TextStyle(color: Colors.red),
+              style: const TextStyle(color: Colors.red),
               textAlign: TextAlign.center,
             ),
           ],
@@ -62,7 +62,7 @@ class SlotProgress extends StatelessWidget {
 
     final slotData = state.data;
     if (slotData == null) {
-      return Padding(
+      return const Padding(
         padding: EdgeInsets.all(8.0),
         child: Column(
           children: [
@@ -82,13 +82,13 @@ class SlotProgress extends StatelessWidget {
     }
 
     return Padding(
-      padding: EdgeInsets.all(8.0),
+      padding: const EdgeInsets.all(8.0),
       child: Column(
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
+              const Text(
                 "Parking Availability",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
               ),
@@ -102,7 +102,7 @@ class SlotProgress extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
             child: LinearProgressIndicator(

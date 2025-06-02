@@ -19,11 +19,11 @@ class SlotDataWidget extends StatelessWidget {
             children: [
               CircularProgressIndicator(
                 strokeWidth: 3,
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
                 backgroundColor: Colors.grey[200],
               ),
-              SizedBox(height: 16),
-              Text("資料載入中...", style: TextStyle(fontSize: 16)),
+              const SizedBox(height: 16),
+              const Text("資料載入中...", style: TextStyle(fontSize: 16)),
             ],
           ),
         ),
@@ -37,11 +37,11 @@ class SlotDataWidget extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline, color: Colors.red, size: 48),
-              SizedBox(height: 16),
+              const Icon(Icons.error_outline, color: Colors.red, size: 48),
+              const SizedBox(height: 16),
               Text(
                 state.error!,
-                style: TextStyle(color: Colors.red, fontSize: 16),
+                style: const TextStyle(color: Colors.red, fontSize: 16),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -52,7 +52,7 @@ class SlotDataWidget extends StatelessWidget {
 
     final slotData = state.data;
     if (slotData == null) {
-      return SizedBox(
+      return const SizedBox(
         height: 200,
         child: Center(
           child: Text("No data available", style: TextStyle(fontSize: 16)),
@@ -63,11 +63,11 @@ class SlotDataWidget extends StatelessWidget {
     return SizedBox(
       height: 200,
       child: GridView(
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
           childAspectRatio: 1.0,
         ),
-        physics: NeverScrollableScrollPhysics(),
+        physics: const NeverScrollableScrollPhysics(),
         children: [
           Padding(
             padding: const EdgeInsets.all(8.0),
@@ -80,14 +80,14 @@ class SlotDataWidget extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
+                    const Text(
                       "Total Spots",
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    SizedBox(height: 4.0),
+                    const SizedBox(height: 4.0),
                     AnimatedFlipCounter(
                       value: slotData.totalSlots,
-                      textStyle: TextStyle(
+                      textStyle: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 50,
                       ),
@@ -108,11 +108,11 @@ class SlotDataWidget extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
+                    const Text(
                       "Remaining Spots",
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    SizedBox(height: 4.0),
+                    const SizedBox(height: 4.0),
                     AnimatedFlipCounter(
                       value: slotData.avaliableSlots,
                       textStyle: TextStyle(
