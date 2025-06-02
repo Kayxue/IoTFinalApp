@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:parking/Utils/OpenMap.dart';
+import 'package:maps_launcher/maps_launcher.dart';
 
 class TopBar extends StatelessWidget {
   const TopBar({super.key});
@@ -14,7 +14,7 @@ class TopBar extends StatelessWidget {
         child: InkWell(
           splashColor: Colors.grey.withAlpha(40),
           onTap: (){
-            MapUtils.openMap(25.048823984664, 121.506254973427);
+            MapsLauncher.launchQuery("台北市萬華區環河南路一段1號");
           },
           child: Container(
             width: double.infinity,
