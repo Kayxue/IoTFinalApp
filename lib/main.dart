@@ -72,7 +72,7 @@ class _MyHomePageState extends State<MyHomePage> {
           .timeout(
             const Duration(seconds: 5),
             onTimeout: () {
-              throw TimeoutException('請求超時，請檢查網絡連接');
+              throw TimeoutException('請求超時，請檢查網路連線');
             },
           );
 
@@ -84,11 +84,11 @@ class _MyHomePageState extends State<MyHomePage> {
           _state = ParkingDataState.success(data);
         });
       } else {
-        throw Exception('服務器返回錯誤: ${response.statusCode}');
+        throw Exception('伺服器返回錯誤: ${response.statusCode}');
       }
     } on SocketException {
       setState(() {
-        _state = ParkingDataState.error('無法連接到服務器，請檢查網絡連接');
+        _state = ParkingDataState.error('無法連接到伺服器，請檢查網路連線');
       });
     } on TimeoutException catch (e) {
       setState(() {
@@ -96,7 +96,7 @@ class _MyHomePageState extends State<MyHomePage> {
       });
     } on FormatException {
       setState(() {
-        _state = ParkingDataState.error('數據格式錯誤');
+        _state = ParkingDataState.error('資料格式錯誤');
       });
     } catch (e) {
       setState(() {
@@ -180,7 +180,7 @@ class _MyHomePageState extends State<MyHomePage> {
     } catch (e) {
       print('Error connecting to WebSocket: $e');
       setState(() {
-        _state = ParkingDataState.error('無法連接到WebSocket服務器');
+        _state = ParkingDataState.error('無法連接到伺服器');
       });
       _reconnectWebSocket();
     }
