@@ -55,8 +55,8 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   ParkingDataState _state = ParkingDataState.loading();
-  final String _apiUrl = 'http://10.0.2.2:3000/my-api';
-  final String _wsUrl = 'ws://10.0.2.2:8080';
+  final String _apiUrl = 'http://192.168.50.250:3000/api/status';
+  final String _wsUrl = 'ws://192.168.50.250:3000/ws';
   WebSocket? _webSocket;
   StreamSubscription? _webSocketSubscription;
 
@@ -145,8 +145,10 @@ class _MyHomePageState extends State<MyHomePage> {
           try {
             print('Received WebSocket data: $data');
             final Map<String, dynamic> jsonData = jsonDecode(data);
-            if(jsonData['type'] != "parkingUpdate"){
-              print('Received unexpected WebSocket data type: ${jsonData['type']}, ignoring');
+            if (jsonData['type'] != "parkingUpdate") {
+              print(
+                'Received unexpected WebSocket data type: ${jsonData['type']}, ignoring',
+              );
               return;
             }
             final updatedData = SlotData.fromJson(jsonData['data']);
@@ -218,10 +220,11 @@ class _MyHomePageState extends State<MyHomePage> {
                     SizedBox(
                       height: 300,
                       child: GridView.builder(
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3,
-                          childAspectRatio: 1.5,
-                        ),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 3,
+                              childAspectRatio: 1.5,
+                            ),
                         itemCount: _state.data!.slots.length,
                         itemBuilder: (context, index) {
                           final occupied = _state.data!.slots[index];
