@@ -14,7 +14,7 @@ class TopBar extends StatelessWidget {
         child: InkWell(
           splashColor: Colors.grey.withAlpha(40),
           onTap: () {
-            MapsLauncher.launchQuery("台北市萬華區環河南路一段1號");
+            MapsLauncher.launchCoordinates(25.04782398,121.50525497, "洛陽停車場");
           },
           child: Container(
             width: double.infinity,
