@@ -37,7 +37,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   animated_flip_counter: ^0.3.4
   maps_launcher: ^3.0.0+1
-  niku: 2.4.2
+  niku: 2.4.3
 
 dev_dependencies:
   flutter_test:
