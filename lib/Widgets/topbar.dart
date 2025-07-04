@@ -36,8 +36,8 @@ class TopBar extends StatelessWidget {
                 ..mainCenter
                 ..crossStart
                 ..padding = const EdgeInsets.only(left: 16.0),
-              Padding(
-                padding: const EdgeInsets.only(right: 16.0),
+              const Padding(
+                padding: EdgeInsets.only(right: 16.0),
                 child: CircleAvatar(
                   radius: 35,
                   backgroundImage: AssetImage('assets/Parking_icon.png'),
